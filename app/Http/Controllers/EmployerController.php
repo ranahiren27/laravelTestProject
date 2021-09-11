@@ -103,9 +103,34 @@ class EmployerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
-    {
-        //
+    public function import(Request $request)
+    {   
+        if(!Session::has('jwt_token')) redirect('/');
+
+        $master = JWT::decode(Session::get('jwt_token'), getenv('JWT_SECRET'), array('HS256'));
+
+        $master_id = $master->id;
+
+        $affectedRows = 0;
+
+        $data = $request->data;
+
+        for($i=0; $i<count($data); $i++){
+            $email = $data[$i]['email'];
+            if( !(ModelsEmployer::where('email',$email)->get()->count() > 0
+                ||
+                User::where('email',$email)->get()->count() > 0)){
+                    $employer = new ModelsEmployer;
+                    $employer->name = $data[$i]['name'];
+                    $employer->email = $data[$i]['email'];
+                    $employer->password = Hash::make($data[$i]['password']);
+                    $employer->role = $data[$i]['role'];
+                    $employer->master_id = $master_id;
+                    $employer->save();
+                    $affectedRows+=1;
+                }
+        }
+        return $affectedRows;
     }
 
     /**

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+`<!DOCTYPE html>
 <html class="loading" lang="en" data-textdirection="ltr">
 <!-- BEGIN: Head-->
 
@@ -13,7 +13,6 @@
         content="admin template, Vuexy admin template, dashboard template, flat admin template, responsive admin template, web app">
     <meta name="author" content="PIXINVENT">
     <title>Dashboard ecommerce - Vuexy - Bootstrap HTML admin template</title>
-    <link rel="apple-touch-icon" href="../../../app-assets/images/ico/apple-icon-120.png">
     <link rel="shortcut icon" type="image/x-icon" href="../../../app-assets/images/ico/favicon.ico">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500;1,600"
         rel="stylesheet">
@@ -40,6 +39,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css">
     <link rel="stylesheet" type="text/css" href="../../../app-assets/css/components.css">
     <!-- END: Page CSS-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.15.3/xlsx.full.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <!-- BEGIN: Custom CSS-->
     {{-- <link rel="stylesheet" type="text/css" href="../../../assets/css/style.css"> --}}
@@ -281,6 +281,12 @@
                         Download Data
                     </button>
                 </ul>
+                <input class="dropdown nav-item nav-link d-flex align-items-center" type="file" id="fileUpload"
+                    accept=".xls,.xlsx" /><br />
+                <button class="dropdown nav-item nav-link d-flex align-items-center" type="button"
+                    onclick="uploadData()" id="uploadExcel" style="border: none">Convert</button>
+                {{-- <pre id="jsonData"></pre> --}}
+
             </div>
         </div>
     </div>
@@ -333,6 +339,79 @@
                 });
             }
         });
+
+        var selectedFile;
+
+        $('fileUpload').on('change', function(e) {
+            console.log("fasd");
+        })
+
+        function importData(data) {
+
+            $.ajax({
+                url: "{{ route('import-employer-data') }}",
+                method: 'POST',
+                data: {
+                    data
+                },
+                success: function(data) {
+                    debugger;
+                    toastr['success'](`${data} rows added!!`);
+                    // setTimeout(window.location.reload(), 5000);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    debugger;
+                }
+            });
+        }
+
+        function cleanData(JSONData) {
+
+            JSONData = JSONData.map(row => {
+                const rowData = {
+                    name: row['name'],
+                    email: row['email'],
+                    role: row['employer role'],
+                    password: 'qwer@1234'
+                };
+                return rowData;
+            });
+
+            importData(JSONData);
+        }
+
+        function selectFile(event) {
+            console.log('fasdfads');
+            selectedFile = event.target.files[0];
+        }
+
+        function uploadData() {
+            const selectedFile = $('#fileUpload')[0].files[0];
+            if (selectedFile) {
+                console.log("Hi...");
+                var fileReader = new FileReader();
+                fileReader.onload = function(event) {
+                    var data = event.target.result;
+
+                    var workbook = XLSX.read(data, {
+                        type: "binary"
+                    });
+                    workbook.SheetNames.forEach(sheet => {
+                        let rowObject = XLSX.utils.sheet_to_row_object_array(
+                            workbook.Sheets[sheet]
+                        );
+                        // let jsonObject = JSON.stringify(rowObject);
+                        // document.getElementById("jsonData").innerHTML = jsonObject;
+                        // console.log(jsonObject);
+                        cleanData(rowObject);
+                    });
+                };
+                fileReader.readAsBinaryString(selectedFile);
+            }
+        }
+
+
+
         // Convert JSON response to excell file
         function DownloadJsonData(JSONData, FileTitle, ShowLabel) {
             //If JSONData is not an object then JSON.parse will parse the JSON string in an Object

@@ -33,6 +33,7 @@ Route::get('logout', 'App\Http\Controllers\UserController@logout')->name('logout
 Route::post('/add-employer','App\Http\Controllers\EmployerController@create')->name('add-employer-api');
 Route::get('/get-all-employer','App\Http\Controllers\EmployerController@index')->name('get-all-employer-api');
 Route::get('/download-employer-data','App\Http\Controllers\EmployerController@downloadData')->name('download-employer-api');
+Route::post('/import-employer-data`','App\Http\Controllers\EmployerController@import')->name('import-employer-data');
 Route::get('/register',function(){
     return view('admin.signup');
 })->name('admin-register');
